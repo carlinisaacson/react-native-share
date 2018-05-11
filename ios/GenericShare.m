@@ -14,8 +14,18 @@
     successCallback:(RCTResponseSenderBlock)successCallback
     serviceType:(NSString*)serviceType {
 
+    static BOOL canOpenViaApp;
+
+    canOpenViaApp = [SLComposeViewController isAvailableForServiceType:serviceType];
+
+    if ([options[@"social"] isEqualToString:@"facebook"]){
+        canOpenViaApp = [self isAppInstalled:@"fbauth2"];
+    } else if ([options[@"social"] isEqualToString:@"twitter"]){
+        canOpenViaApp = [self isAppInstalled:@"twitterauth"];
+    }
+
     NSLog(@"Try open view");
-    if([SLComposeViewController isAvailableForServiceType:serviceType]) {
+    if(canOpenViaApp) {
 
         SLComposeViewController *composeController = [SLComposeViewController  composeViewControllerForServiceType:serviceType];
 
@@ -69,6 +79,15 @@
 
       }
   }
+
+  -(BOOL)isAppInstalled:(NSString *)scheme {
+    NSURLComponents *components = [[NSURLComponents alloc] init];
+    components.scheme = scheme;
+    components.path = @"/";
+    return [[UIApplication sharedApplication]
+            canOpenURL:components.URL];
+  }
+
   - (void)openScheme:(NSString *)scheme {
       UIApplication *application = [UIApplication sharedApplication];
       NSURL *schemeURL = [NSURL URLWithString:scheme];
